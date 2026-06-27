@@ -1,0 +1,86 @@
+{
+  "workspace_root": "team-work",
+  "product_root": "product",
+  "integration_proposals": "integration-proposals",
+  "checklist_templates": "docs/checklists",
+  "members": [
+    {
+      "id": "member-1",
+      "name": "고윤재"
+    },
+    {
+      "id": "member-2",
+      "name": "권이루"
+    },
+    {
+      "id": "member-3",
+      "name": "백지원"
+    },
+    {
+      "id": "member-4",
+      "name": "유준우"
+    },
+    {
+      "id": "member-5",
+      "name": "이동건"
+    },
+    {
+      "id": "member-6",
+      "name": "이승환"
+    },
+    {
+      "id": "member-7",
+      "name": "이윤재"
+    }
+  ],
+  "roles": [
+    "planning",
+    "building",
+    "validation",
+    "presentation"
+  ],
+  "dashboard": {
+    "root": "dashboard",
+    "data_file": "dashboard-data.json",
+    "html_file": "index.html",
+    "public": true
+  },
+  "leader": {
+    "notification_channel": "hermes-discord",
+    "hermes_target": "discord:#hackathon-leader",
+    "decision_log": "leader-decisions/decision-log.jsonl",
+    "notifications": "leader-notifications"
+  },
+  "research": {
+    "web_policy": "always",
+    "persona_dataset": "nvidia/Nemotron-Personas-Korea",
+    "fallback_persona_dataset": "NLPBada/korean-persona-chat-dataset"
+  },
+  "product_psychology": {
+    "source": "CuriousPaul/product-psychology-for-vibe-coding",
+    "checks": [
+      "6P storyboard",
+      "BMAP",
+      "BIAS",
+      "Peak-End",
+      "Ethics"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "python3 -m compileall -q harness"
+    ]
+  },
+  "git": {
+    "shared_branch": true,
+    "push_remote": "origin",
+    "push_branch": "HEAD",
+    "allow_common_file_edits": false,
+    "forbidden_commands": [
+      "reset --hard",
+      "checkout --",
+      "clean -fd",
+      "push --force"
+    ]
+  }
+}

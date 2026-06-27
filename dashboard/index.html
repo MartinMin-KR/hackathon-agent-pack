@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hackathon Leader Dashboard</title>
+  <style>
+    :root { color-scheme: light; --ink:#172026; --muted:#667085; --line:#d8dee4; --bg:#f6f8fa; --card:#ffffff; --accent:#2563eb; --warn:#b45309; --bad:#b42318; --ok:#067647; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--ink); background:var(--bg); }
+    header { padding:24px 28px 14px; background:#fff; border-bottom:1px solid var(--line); }
+    h1 { margin:0 0 6px; font-size:28px; letter-spacing:0; }
+    h2 { margin:0 0 12px; font-size:17px; }
+    main { display:grid; grid-template-columns: 1fr 1.2fr 1fr; gap:16px; padding:16px; }
+    section, .metric { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:16px; }
+    .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; padding:16px; }
+    .metric strong { display:block; font-size:28px; }
+    .muted { color:var(--muted); font-size:13px; }
+    .item { border-top:1px solid var(--line); padding:11px 0; }
+    .item:first-child { border-top:0; padding-top:0; }
+    .badge { display:inline-flex; align-items:center; min-height:24px; padding:2px 8px; border-radius:999px; font-size:12px; background:#eef2ff; color:#1d4ed8; }
+    .urgent { color:var(--bad); font-weight:700; }
+    .warning { color:var(--warn); font-weight:700; }
+    .ok { color:var(--ok); font-weight:700; }
+    ul { margin:0; padding-left:18px; }
+    @media (max-width: 980px) { main, .metrics { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Hackathon Leader Dashboard</h1>
+    <div class="muted" id="generated">Loading dashboard data...</div>
+  </header>
+  <div class="metrics" id="metrics"></div>
+  <main>
+    <section><h2>팀원별 현황</h2><div id="members"></div></section>
+    <section><h2>리더 결정 대기</h2><div id="decisions"></div><h2 style="margin-top:22px">Proposal 큐</h2><div id="proposals"></div></section>
+    <section><h2>위험/충돌</h2><div id="risks"></div><h2 style="margin-top:22px">최종 제출 준비도</h2><div id="submission"></div></section>
+  </main>
+  <script>
+    const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (ch) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    const item = (body) => `<div class="item">${body}</div>`;
+    fetch("./dashboard-data.json", {cache:"no-store"})
+      .then((response) => response.json())
+      .then((data) => {
+        document.getElementById("generated").textContent = `Updated ${data.generated_at} · Hermes ${data.leader.hermes_target}`;
+        document.getElementById("metrics").innerHTML = [
+          ["팀원", data.summary.members],
+          ["Proposal", data.summary.proposals],
+          ["결정 대기", data.summary.pending_decisions],
+          ["위험", data.summary.risks],
+        ].map(([label,value]) => `<div class="metric"><strong>${esc(value)}</strong><span class="muted">${esc(label)}</span></div>`).join("");
+        document.getElementById("members").innerHTML = data.members.map((m) => item(`<strong>${esc(m.name)}</strong> <span class="badge">${esc(m.id)}</span><br><span class="muted">workspace ${esc(m.workspace)} · tasks ${esc(m.request_count)} · outputs ${esc(m.output_count)}</span>`)).join("") || item("팀원 상태 없음");
+        document.getElementById("decisions").innerHTML = data.pending_decisions.map((p) => item(`<strong>${esc(p.name)}</strong><br><span class="${esc(p.risk)}">${esc(p.risk)}</span> · ${esc(p.status)}<br><span class="muted">결정하면 대기함에서 사라지고 decision log로 이동</span>`)).join("") || item(`<span class="ok">대기 중인 결정 없음</span>`);
+        document.getElementById("proposals").innerHTML = data.proposals.map((p) => item(`<strong>${esc(p.name)}</strong><br><span class="muted">${esc(p.status)} · accepted ${esc(p.accepted)} · ${esc(p.decision_status)}</span>`)).join("") || item("proposal 없음");
+        document.getElementById("risks").innerHTML = data.risks.map((p) => item(`<strong>${esc(p.name)}</strong><br><span class="${esc(p.risk)}">${esc(p.risk)}</span>`)).join("") || item(`<span class="ok">현재 위험 없음</span>`);
+        document.getElementById("submission").innerHTML = `<ul>${data.summary.submission_checks.map((c) => `<li>${esc(c.label)}: ${esc(c.status)}</li>`).join("")}</ul>`;
+      })
+      .catch((error) => { document.getElementById("generated").textContent = `Dashboard data failed to load: ${error}`; });
+  </script>
+</body>
+</html>
