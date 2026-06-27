@@ -9,6 +9,7 @@ from harness.hackathon_harness import (
     assert_no_conflict_markers,
     assert_safe_changes,
     create_dashboard,
+    create_leader_decision,
     create_integration_proposal,
     dry_run_integrate,
     integrate_proposal,
@@ -20,6 +21,7 @@ from harness.hackathon_harness import (
     ensure_inside,
     ensure_member_workspace,
     resolve_member,
+    resolve_leader_decision,
     select_member,
     verify_workspace,
 )
@@ -107,9 +109,15 @@ class HarnessTests(unittest.TestCase):
                 "member-1",
                 [
                     "team-work/member-1/outputs/result.md",
-                    "integration-proposals/shared-change.md",
+                    "integration-proposals/member-1-shared-change/proposal.md",
                 ],
             )
+
+    def test_safe_changes_reject_other_member_proposal(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            config = config_for(Path(tmp))
+            with self.assertRaises(HarnessError):
+                assert_safe_changes(config, "member-1", ["integration-proposals/member-2-demo/proposal.md"])
 
     def test_safe_changes_reject_common_file(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -265,6 +273,90 @@ class HarnessTests(unittest.TestCase):
             with self.assertRaisesRegex(HarnessError, "Refusing to overwrite"):
                 integrate_proposal(config, proposal.parent.name)
 
+    def test_review_requires_completed_workflow_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            config = config_for(Path(tmp))
+            create_task(config, "member-1", "Landing Page Draft", "code")
+            checklist = config.workspace_root / "member-1" / "tests" / "landing-page-draft-checklist.md"
+            text = checklist.read_text(encoding="utf-8").replace("- Status: incomplete", "- Status: complete")
+            text = text.replace("- [ ]", "- [x]")
+            checklist.write_text(text, encoding="utf-8")
+
+            with self.assertRaisesRegex(HarnessError, "workflow artifacts are incomplete"):
+                create_review_request(config, "member-1", "Landing Page Draft")
+
+    def test_review_rejects_status_only_artifact_completion(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            config = config_for(Path(tmp))
+            create_task(config, "member-1", "Landing Page Draft", "code")
+            checklist = config.workspace_root / "member-1" / "tests" / "landing-page-draft-checklist.md"
+            text = checklist.read_text(encoding="utf-8").replace("- Status: incomplete", "- Status: complete")
+            text = text.replace("- [ ]", "- [x]")
+            checklist.write_text(text, encoding="utf-8")
+            flip_artifact_status_only(config, "member-1")
+
+            with self.assertRaisesRegex(HarnessError, "needs concrete"):
+                create_review_request(config, "member-1", "Landing Page Draft")
+
+    def test_review_rejects_filler_artifact_content(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            config = config_for(Path(tmp))
+            create_task(config, "member-1", "Landing Page Draft", "code")
+            checklist = config.workspace_root / "member-1" / "tests" / "landing-page-draft-checklist.md"
+            text = checklist.read_text(encoding="utf-8").replace("- Status: incomplete", "- Status: complete")
+            text = text.replace("- [ ]", "- [x]")
+            checklist.write_text(text, encoding="utf-8")
+            write_filler_artifacts(config, "member-1")
+
+            with self.assertRaisesRegex(HarnessError, "needs concrete"):
+                create_review_request(config, "member-1", "Landing Page Draft")
+
+    def test_review_accepts_concise_substantive_scope(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            config = config_for(Path(tmp))
+            write_complete_checklist(config, "member-1", "Landing Page Draft")
+            brief = config.workspace_root / "member-1" / "requests" / "landing-page-draft.md"
+            text = brief.read_text(encoding="utf-8")
+            text = replace_line(text, "- Scope:", "- Scope: Copy edits only.")
+            brief.write_text(text, encoding="utf-8")
+
+            review = create_review_request(config, "member-1", "Landing Page Draft")
+
+            self.assertTrue(review.exists())
+
+    def test_leader_decision_lifecycle_updates_dashboard(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            config = config_for(Path(tmp))
+            decision = create_leader_decision(
+                config,
+                "Approve onboarding proposal",
+                "Existing product file would change",
+                "Approve after copy edit",
+                "urgent",
+                "member-1",
+                "member-1-landing-page-draft",
+            )
+            dashboard = create_dashboard(config)
+            data = (config.dashboard_root / "dashboard-data.json").read_text(encoding="utf-8")
+            self.assertIn("Approve onboarding proposal", data)
+            self.assertIn("pending_decision", data)
+
+            resolve_leader_decision(config, decision.stem, "approved", "Leader approved")
+            create_dashboard(config)
+            data = (config.dashboard_root / "dashboard-data.json").read_text(encoding="utf-8")
+            self.assertNotIn('"status": "pending_decision"', data)
+            self.assertIn("Leader Dashboard", dashboard.read_text(encoding="utf-8"))
+
+    def test_leader_decision_ids_do_not_collide_for_same_title(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            config = config_for(Path(tmp))
+            first = create_leader_decision(config, "Same Title", "reason", "recommendation")
+            second = create_leader_decision(config, "Same Title", "reason", "recommendation")
+
+            self.assertNotEqual(first.name, second.name)
+            self.assertTrue(first.exists())
+            self.assertTrue(second.exists())
+
 
 def write_complete_checklist(config: HarnessConfig, member: str, title: str) -> None:
     create_task(config, member, title, "code")
@@ -273,6 +365,98 @@ def write_complete_checklist(config: HarnessConfig, member: str, title: str) -> 
     text = text.replace("- Status: incomplete", "- Status: complete")
     text = text.replace("- [ ]", "- [x]")
     path.write_text(text, encoding="utf-8")
+    write_complete_artifacts(config, member, title)
+
+
+def write_complete_artifacts(config: HarnessConfig, member: str, title: str) -> None:
+    safe_title = "landing-page-draft"
+    workspace = config.workspace_root / member
+    brief = workspace / "requests" / f"{safe_title}.md"
+    brief_text = brief.read_text(encoding="utf-8")
+    brief_text = brief_text.replace("- Status: clarifying", "- Status: ready-for-review")
+    brief_text = brief_text.replace("- Intent:", "- Intent: Help first-time users understand the landing page quickly.")
+    brief_text = brief_text.replace("- Outcome:", "- Outcome: A locally reviewable landing page draft.")
+    brief_text = brief_text.replace("- Scope:", "- Scope: Draft content and structure only.")
+    brief_text = brief_text.replace("- Acceptance criteria:", "- Acceptance criteria: Teammate can inspect the result locally.")
+    brief.write_text(brief_text, encoding="utf-8")
+
+    (workspace / "specs" / f"{safe_title}-seed.md").write_text(
+        "# Seed-like Task Spec\n\n"
+        "- Status: complete\n\n"
+        "## Goal\n\nBuild a locally reviewable landing page draft for first-time user understanding.\n\n"
+        "## Acceptance Criteria\n\n- The teammate can inspect the draft locally and confirm it matches the request.\n\n"
+        "## Non-goals\n\n- Do not overwrite existing product files or bypass the leader proposal flow.\n\n"
+        "## Inputs\n\n- Teammate request.\n\n"
+        "## Output Contract\n\n- A proposal-ready draft with clear scope, evidence, and local review instructions.\n\n"
+        "## Evaluate Plan\n\n1. Mechanical verification\n2. Semantic requirement check\n",
+        encoding="utf-8",
+    )
+    (workspace / "interviews" / f"{safe_title}-ouroboros.md").write_text(
+        "# Ouroboros Interview Transcript\n\n- Status: complete\n\n## Result\n\nIntent, scope, non-goals, and acceptance criteria are clear.\n",
+        encoding="utf-8",
+    )
+    (workspace / "research" / f"{safe_title}-research.md").write_text(
+        "# Automatic Web Research Log\n\n- Status: complete\n- Source: local test fixture with dated product context\n- Applied findings: none\n",
+        encoding="utf-8",
+    )
+    (workspace / "customer-interviews" / f"{safe_title}-personas.md").write_text(
+        "# Korean Persona Simulated Interview\n\n- Status: complete\n- Insight: first-time users need a clear next action.\n",
+        encoding="utf-8",
+    )
+
+
+def flip_artifact_status_only(config: HarnessConfig, member: str) -> None:
+    workspace = config.workspace_root / member
+    safe_title = "landing-page-draft"
+    replacements = {
+        workspace / "requests" / f"{safe_title}.md": ("- Status: clarifying", "- Status: ready-for-review"),
+        workspace / "specs" / f"{safe_title}-seed.md": ("- Status: draft", "- Status: complete"),
+        workspace / "interviews" / f"{safe_title}-ouroboros.md": ("- Status: draft", "- Status: complete"),
+        workspace / "research" / f"{safe_title}-research.md": ("- Status: draft", "- Status: complete"),
+        workspace / "customer-interviews" / f"{safe_title}-personas.md": ("- Status: draft", "- Status: complete"),
+    }
+    for path, (old, new) in replacements.items():
+        path.write_text(path.read_text(encoding="utf-8").replace(old, new), encoding="utf-8")
+
+
+def write_filler_artifacts(config: HarnessConfig, member: str) -> None:
+    safe_title = "landing-page-draft"
+    workspace = config.workspace_root / member
+    brief = workspace / "requests" / f"{safe_title}.md"
+    brief_text = brief.read_text(encoding="utf-8")
+    brief_text = brief_text.replace("- Status: clarifying", "- Status: ready-for-review")
+    brief_text = brief_text.replace("- Intent:", "- Intent: ok")
+    brief_text = brief_text.replace("- Outcome:", "- Outcome: done")
+    brief_text = brief_text.replace("- Scope:", "- Scope: fine")
+    brief_text = brief_text.replace("- Acceptance criteria:", "- Acceptance criteria: yes")
+    brief.write_text(brief_text, encoding="utf-8")
+    (workspace / "specs" / f"{safe_title}-seed.md").write_text(
+        "# Seed-like Task Spec\n\n"
+        "- Status: complete\n\n"
+        "## Goal\n\nmeaningful??\n\n"
+        "## Acceptance Criteria\n\nmeaningful??\n\n"
+        "## Non-goals\n\nmeaningful??\n\n"
+        "## Inputs\n\nmeaningful??\n\n"
+        "## Output Contract\n\nmeaningful??\n\n"
+        "## Evaluate Plan\n\nmeaningful??\n",
+        encoding="utf-8",
+    )
+    (workspace / "interviews" / f"{safe_title}-ouroboros.md").write_text(
+        "# Ouroboros Interview Transcript\n\n- Status: complete\n\n## Result\n\nmeaningful??\n",
+        encoding="utf-8",
+    )
+    (workspace / "research" / f"{safe_title}-research.md").write_text(
+        "# Automatic Web Research Log\n\n- Status: complete\n- Source: ok\n",
+        encoding="utf-8",
+    )
+    (workspace / "customer-interviews" / f"{safe_title}-personas.md").write_text(
+        "# Korean Persona Simulated Interview\n\n- Status: complete\n- Insight: done\n",
+        encoding="utf-8",
+    )
+
+
+def replace_line(text: str, prefix: str, replacement: str) -> str:
+    return "\n".join(replacement if line.startswith(prefix) else line for line in text.splitlines()) + "\n"
 
 
 def make_proposal_with_product_file(config: HarnessConfig) -> Path:

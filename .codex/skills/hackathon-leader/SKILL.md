@@ -58,6 +58,13 @@ When the leader must decide, report:
 
 When the leader decides, remove the item from pending decisions and record it in the decision log.
 
+Use harness decision commands for this lifecycle:
+
+```bash
+python3 -m harness.hackathon_harness decision create --title "Approve change" --urgency urgent --reason "Existing product file would change" --recommendation "Approve after review"
+python3 -m harness.hackathon_harness decision resolve <decision-id> --status approved --notes "Approved by leader"
+```
+
 ## Hermes Discord
 
 Use Hermes Discord for urgent/blocking items only. Default target is configured in `.hackathon/config.json` as `discord:#hackathon-leader`.
@@ -70,6 +77,8 @@ python3 -m harness.hackathon_harness init
 python3 -m harness.hackathon_harness verify --all
 python3 -m harness.hackathon_harness dashboard
 python3 -m harness.hackathon_harness session-wrap
+python3 -m harness.hackathon_harness decision create --title "Approve change" --reason "Existing product file changes" --recommendation "Approve after review"
+python3 -m harness.hackathon_harness decision resolve <decision-id> --status approved
 python3 -m harness.hackathon_harness integrate member-1-example --dry-run
 python3 -m harness.hackathon_harness integrate member-1-example
 ```
@@ -87,4 +96,3 @@ Escalate to the human leader for:
 - Destructive operations.
 - Final submission changes.
 - Repeated evaluate failure.
-

@@ -89,6 +89,8 @@ python3 -m harness.hackathon_harness approve --title "landing page draft"
 python3 -m harness.hackathon_harness propose --title "landing page draft"
 python3 -m harness.hackathon_harness sync --dry-run --title "landing page draft"
 python3 -m harness.hackathon_harness sync --title "landing page draft"
+python3 -m harness.hackathon_harness decision create --title "Approve change" --reason "Existing product file changes" --recommendation "Approve after review"
+python3 -m harness.hackathon_harness decision resolve 20260627000000-approve-change --status approved --notes "Approved"
 ```
 
 ## Safety Model
@@ -97,7 +99,9 @@ python3 -m harness.hackathon_harness sync --title "landing page draft"
 - Product files live under `product/`.
 - Teammates do not edit `product/` directly.
 - Product changes go through `integration-proposals/`.
+- A teammate can only sync their own `integration-proposals/member-N-*` proposal namespace.
 - Existing product files are not overwritten automatically.
+- Review/proposal creation requires completed workflow artifacts, not only a checked checklist.
 - Destructive Git commands are not part of the harness.
 - Simulated persona interviews are hypothesis support, not real market validation.
 

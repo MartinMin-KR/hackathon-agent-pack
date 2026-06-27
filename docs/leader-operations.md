@@ -9,6 +9,22 @@
 5. Use Hermes Discord for urgent decisions.
 6. Integrate only accepted proposals.
 
+## Decision Commands
+
+Create a pending leader decision:
+
+```bash
+python3 -m harness.hackathon_harness decision create --title "Approve onboarding change" --urgency urgent --reason "Existing product file would change" --recommendation "Approve after copy edit"
+```
+
+Resolve it after the leader decides:
+
+```bash
+python3 -m harness.hackathon_harness decision resolve <decision-id> --status approved --notes "Approved by leader"
+```
+
+Resolved items leave the pending dashboard list and stay in `leader-decisions/decision-log.jsonl`.
+
 ## Decision Items
 
 A decision item leaves the dashboard pending list once the leader decides. The decision should be logged as approved, rejected, changes requested, deferred, or executed.
@@ -24,6 +40,8 @@ Use Hermes for urgent or blocking items:
 - Deployment or external service issue
 
 Configured target: `discord:#hackathon-leader`.
+
+The harness writes pending decision payloads under `leader-notifications/`. The leader agent uses those payloads when sending Hermes Discord alerts.
 
 ## Vercel
 

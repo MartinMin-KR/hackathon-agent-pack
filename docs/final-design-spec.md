@@ -70,7 +70,9 @@ Recommended branches:
 - Team work stays under `team-work/member-N/`.
 - Direct product sync by teammate agents is blocked.
 - Product changes move through `integration-proposals/`.
+- Teammates can sync only their own `integration-proposals/member-N-*` proposal namespace.
 - Existing product files are not overwritten automatically.
+- Review and proposal creation require completed workflow artifacts: brief, seed, interview, research, and persona files.
+- Leader decisions are first-class JSON records under `leader-notifications/` and are logged to `leader-decisions/decision-log.jsonl`.
 - Destructive Git commands are outside the harness.
 - Deletions should move files to `archive/` instead of removing them.
-

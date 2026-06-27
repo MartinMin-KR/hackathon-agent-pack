@@ -7,6 +7,9 @@
 - Generate Vercel-ready dashboard files.
 - Block automatic product overwrites.
 - Keep proposal status machine-readable.
+- Require completed workflow artifacts before review/proposal.
+- Restrict proposal sync to the current member namespace.
+- Add leader decision create/resolve lifecycle and dashboard data.
 
 ## Phase 2: Agent Skills
 
@@ -28,4 +31,3 @@
 - Run install shell syntax check.
 - Generate dashboard and package zip.
 - Initialize GitHub repo and push if authenticated.
-

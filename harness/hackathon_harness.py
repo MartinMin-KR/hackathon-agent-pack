@@ -14,6 +14,7 @@ import pathlib
 import shutil
 import subprocess
 import sys
+import uuid
 from dataclasses import dataclass
 from typing import Iterable
 
@@ -197,6 +198,18 @@ def checklist_path(config: HarnessConfig, member: str, title: str) -> pathlib.Pa
     return workspace / "tests" / f"{safe_slug(title, 'task')}-checklist.md"
 
 
+def task_artifact_paths(config: HarnessConfig, member: str, title: str) -> dict[str, pathlib.Path]:
+    workspace = ensure_member_workspace(config, member)
+    safe_title = safe_slug(title, "task")
+    return {
+        "brief": workspace / "requests" / f"{safe_title}.md",
+        "seed": workspace / "specs" / f"{safe_title}-seed.md",
+        "interview": workspace / "interviews" / f"{safe_title}-ouroboros.md",
+        "research": workspace / "research" / f"{safe_title}-research.md",
+        "persona": workspace / "customer-interviews" / f"{safe_title}-personas.md",
+    }
+
+
 def checklist_template_path(config: HarnessConfig, task_type: str) -> pathlib.Path:
     require_task_type(config, task_type)
     path = config.checklist_templates / f"{task_type}.md"
@@ -234,6 +247,105 @@ def assert_checklist_complete(config: HarnessConfig, member: str, title: str) ->
     if incomplete:
         joined = "\n".join(incomplete)
         raise HarnessError(f"Checklist still has incomplete items:\n{joined}")
+
+
+def assert_required_artifacts_complete(config: HarnessConfig, member: str, title: str) -> None:
+    paths = task_artifact_paths(config, member, title)
+    missing: list[str] = []
+    for key in ("brief", "seed", "interview", "research", "persona"):
+        path = paths[key]
+        if not path.exists():
+            missing.append(f"{key}: missing {display_path(path)}")
+            continue
+        text = path.read_text(encoding="utf-8")
+        if key == "brief":
+            if "- Status: ready-for-review" not in text:
+                missing.append(f"{key}: status is not ready-for-review in {display_path(path)}")
+            bullet_requirements = {
+                "- Intent:": (4, 24),
+                "- Outcome:": (4, 24),
+                "- Scope:": (3, 12),
+                "- Acceptance criteria:": (4, 24),
+            }
+            for label, (min_words, min_chars) in bullet_requirements.items():
+                if not bullet_has_value(text, label, min_words=min_words, min_chars=min_chars):
+                    missing.append(f"{key}: {label} needs a concrete value in {display_path(path)}")
+        elif key == "seed":
+            if "- Status: complete" not in text:
+                missing.append(f"{key}: status is not complete in {display_path(path)}")
+            for heading in ("## Goal", "## Acceptance Criteria", "## Non-goals", "## Output Contract"):
+                if not section_has_content(text, heading):
+                    missing.append(f"{key}: {heading} needs concrete content in {display_path(path)}")
+        elif key == "interview":
+            if "- Status: complete" not in text:
+                missing.append(f"{key}: status is not complete in {display_path(path)}")
+            if not section_has_content(text, "## Result"):
+                missing.append(f"{key}: ## Result needs concrete content in {display_path(path)}")
+        elif key == "research":
+            if "- Status: complete" not in text:
+                missing.append(f"{key}: status is not complete in {display_path(path)}")
+            if not bullet_has_value(text, "- Source:", min_words=4, min_chars=24):
+                missing.append(f"{key}: - Source: needs a concrete source in {display_path(path)}")
+        elif key == "persona":
+            if "- Status: complete" not in text:
+                missing.append(f"{key}: status is not complete in {display_path(path)}")
+            if not bullet_has_value(text, "- Insight:", min_words=5, min_chars=32):
+                missing.append(f"{key}: - Insight: needs a concrete insight in {display_path(path)}")
+    if missing:
+        raise HarnessError(
+            "Task workflow artifacts are incomplete. Complete the Ouroboros/research/persona/seed loop before review:\n"
+            + "\n".join(f"- {item}" for item in missing)
+        )
+
+
+def bullet_has_value(text: str, label: str, *, min_words: int, min_chars: int) -> bool:
+    for line in text.splitlines():
+        if line.startswith(label):
+            value = line[len(label) :].strip()
+            return is_substantive_text(value, min_words=min_words, min_chars=min_chars)
+    return False
+
+
+def section_has_content(text: str, heading: str) -> bool:
+    lines = text.splitlines()
+    capture = False
+    content: list[str] = []
+    for line in lines:
+        if line.strip() == heading:
+            capture = True
+            continue
+        if capture and line.startswith("## "):
+            break
+        if capture and line.strip():
+            content.append(line.strip())
+    joined = " ".join(content).strip()
+    return is_substantive_text(joined, min_words=5, min_chars=32)
+
+
+def is_substantive_text(value: str, *, min_words: int, min_chars: int) -> bool:
+    stripped = value.strip()
+    if len(stripped) < min_chars:
+        return False
+    lowered = stripped.lower().strip(" .?!:;,-_")
+    filler_values = {
+        "todo",
+        "tbd",
+        "none",
+        "n/a",
+        "placeholder",
+        "ok",
+        "done",
+        "fine",
+        "yes",
+        "meaningful",
+        "meaningful??",
+        "complete",
+        "completed",
+    }
+    if lowered in filler_values:
+        return False
+    words = [word for word in stripped.replace("/", " ").split() if any(ch.isalnum() for ch in word)]
+    return len(words) >= min_words
 
 
 def ensure_member_workspace(config: HarnessConfig, member: str) -> pathlib.Path:
@@ -301,10 +413,11 @@ def create_task(config: HarnessConfig, member: str, title: str, task_type: str) 
     require_task_type(config, task_type)
     safe_title = safe_slug(title, "task")
     task_path = workspace / "requests" / f"{safe_title}.md"
-    seed_path = workspace / "specs" / f"{safe_title}-seed.md"
-    interview_path = workspace / "interviews" / f"{safe_title}-ouroboros.md"
-    persona_path = workspace / "customer-interviews" / f"{safe_title}-personas.md"
-    research_path = workspace / "research" / f"{safe_title}-research.md"
+    artifact_paths = task_artifact_paths(config, member, title)
+    seed_path = artifact_paths["seed"]
+    interview_path = artifact_paths["interview"]
+    persona_path = artifact_paths["persona"]
+    research_path = artifact_paths["research"]
     ensure_inside(task_path, workspace)
     if not task_path.exists():
         task_path.write_text(
@@ -377,16 +490,25 @@ def create_task(config: HarnessConfig, member: str, title: str, task_type: str) 
             encoding="utf-8",
         )
     if not interview_path.exists():
-        interview_path.write_text("# Ouroboros Interview Transcript\n\n", encoding="utf-8")
+        interview_path.write_text("# Ouroboros Interview Transcript\n\n- Status: draft\n\n## Result\n\n", encoding="utf-8")
     if not persona_path.exists():
         persona_path.write_text(
             "# Korean Persona Simulated Interview\n\n"
+            "- Status: draft\n"
             f"- Dataset: {config.persona_dataset}\n"
-            "- This is simulated customer hypothesis work, not real market validation.\n\n",
+            "- This is simulated customer hypothesis work, not real market validation.\n\n"
+            "## Insights\n\n"
+            "- Insight:\n",
             encoding="utf-8",
         )
     if not research_path.exists():
-        research_path.write_text("# Automatic Web Research Log\n\n- Policy: always automatic\n", encoding="utf-8")
+        research_path.write_text(
+            "# Automatic Web Research Log\n\n"
+            "- Status: draft\n"
+            "- Policy: always automatic\n"
+            "- Source:\n",
+            encoding="utf-8",
+        )
     create_checklist(config, member, title, task_type)
     return task_path
 
@@ -427,6 +549,7 @@ def ensure_learning_log(config: HarnessConfig, member: str) -> pathlib.Path:
 
 def create_review_request(config: HarnessConfig, member: str, title: str) -> pathlib.Path:
     assert_checklist_complete(config, member, title)
+    assert_required_artifacts_complete(config, member, title)
     create_verification_summary(config, member, title)
     ensure_learning_log(config, member)
     workspace = ensure_member_workspace(config, member)
@@ -466,6 +589,7 @@ def approve_review(config: HarnessConfig, member: str, title: str) -> pathlib.Pa
 
 def create_integration_proposal(config: HarnessConfig, member: str, title: str) -> pathlib.Path:
     assert_checklist_complete(config, member, title)
+    assert_required_artifacts_complete(config, member, title)
     workspace = ensure_member_workspace(config, member)
     safe_title = safe_slug(title, "proposal")
     review_path = workspace / "outputs" / f"{safe_title}-review.md"
@@ -631,6 +755,79 @@ def read_proposal_status(path: pathlib.Path) -> dict[str, str]:
     return result
 
 
+def read_json_file(path: pathlib.Path) -> dict[str, object]:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def pending_leader_decisions(config: HarnessConfig) -> list[dict[str, object]]:
+    if not config.notifications_root.exists():
+        return []
+    decisions: list[dict[str, object]] = []
+    for path in sorted(config.notifications_root.glob("*.json")):
+        data = read_json_file(path)
+        if data.get("status") == "pending_decision":
+            decisions.append({**data, "file": display_path(path)})
+    return decisions
+
+
+def append_decision_log(config: HarnessConfig, data: dict[str, object]) -> None:
+    config.decision_log.parent.mkdir(parents=True, exist_ok=True)
+    entry = {**data, "logged_at": _dt.datetime.now(_dt.timezone.utc).isoformat()}
+    with config.decision_log.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(entry, ensure_ascii=False, sort_keys=True) + "\n")
+
+
+def create_leader_decision(
+    config: HarnessConfig,
+    title: str,
+    reason: str,
+    recommendation: str,
+    urgency: str = "warning",
+    member: str | None = None,
+    proposal: str | None = None,
+    choices: str | None = None,
+) -> pathlib.Path:
+    if urgency not in {"info", "warning", "urgent"}:
+        raise HarnessError("Urgency must be one of: info, warning, urgent")
+    decision_id = (
+        f"{_dt.datetime.now(_dt.timezone.utc).strftime('%Y%m%d%H%M%S%f')}-"
+        f"{safe_slug(title, 'decision')}-{uuid.uuid4().hex[:8]}"
+    )
+    path = config.notifications_root / f"{decision_id}.json"
+    config.notifications_root.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "id": decision_id,
+        "title": title,
+        "status": "pending_decision",
+        "urgency": urgency,
+        "reason": reason,
+        "recommendation": recommendation,
+        "choices": choices or "approve / request_changes / defer / reject",
+        "member": member,
+        "proposal": proposal,
+        "hermes_target": config.hermes_target,
+        "created_at": _dt.datetime.now(_dt.timezone.utc).isoformat(),
+    }
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    append_decision_log(config, {"event": "decision_created", **payload})
+    return path
+
+
+def resolve_leader_decision(config: HarnessConfig, decision_id: str, status: str, notes: str | None = None) -> pathlib.Path:
+    if status not in {"approved", "rejected", "changes_requested", "deferred", "executed"}:
+        raise HarnessError("Decision status must be approved, rejected, changes_requested, deferred, or executed.")
+    path = config.notifications_root / f"{decision_id}.json"
+    if not path.exists():
+        raise HarnessError(f"Unknown leader decision: {decision_id}")
+    data = read_json_file(path)
+    data["status"] = status
+    data["resolved_at"] = _dt.datetime.now(_dt.timezone.utc).isoformat()
+    data["notes"] = notes or ""
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    append_decision_log(config, {"event": "decision_resolved", **data})
+    return path
+
+
 def dashboard_data(config: HarnessConfig) -> dict[str, object]:
     proposal_dirs = sorted(p for p in config.integration_proposals.iterdir() if p.is_dir()) if config.integration_proposals.exists() else []
     proposals = []
@@ -644,6 +841,30 @@ def dashboard_data(config: HarnessConfig) -> dict[str, object]:
             pending_decisions.append(record)
         if status["risk"] in {"warning", "urgent"}:
             risks.append(record)
+    decision_items = pending_leader_decisions(config)
+    pending_decisions.extend(
+        {
+            "name": str(item.get("title", item.get("id", "decision"))),
+            "status": str(item.get("status", "pending_decision")),
+            "accepted": "n/a",
+            "decision_status": str(item.get("status", "pending_decision")),
+            "risk": str(item.get("urgency", "warning")),
+            "source": "leader-notification",
+        }
+        for item in decision_items
+    )
+    risks.extend(
+        {
+            "name": str(item.get("title", item.get("id", "decision"))),
+            "status": str(item.get("status", "pending_decision")),
+            "accepted": "n/a",
+            "decision_status": str(item.get("status", "pending_decision")),
+            "risk": str(item.get("urgency", "warning")),
+            "source": "leader-notification",
+        }
+        for item in decision_items
+        if item.get("urgency") in {"warning", "urgent"}
+    )
     members = []
     for member in config.members:
         workspace = member_workspace(config, member)
@@ -677,6 +898,7 @@ def dashboard_data(config: HarnessConfig) -> dict[str, object]:
         "proposals": proposals,
         "pending_decisions": pending_decisions,
         "risks": risks,
+        "decision_items": decision_items,
         "leader": {
             "hermes_target": config.hermes_target,
             "decision_log": display_path(config.decision_log),
@@ -830,7 +1052,7 @@ def allowed_prefixes(config: HarnessConfig, member: str) -> tuple[str, ...]:
     base = config.workspace_root.parent.resolve()
     workspace = member_workspace(config, member).resolve().relative_to(base).as_posix()
     proposals = config.integration_proposals.resolve().relative_to(base).as_posix()
-    return (f"{workspace}/", f"{proposals}/")
+    return (f"{workspace}/", f"{proposals}/{member}-")
 
 
 def assert_safe_changes(config: HarnessConfig, member: str, files: Iterable[str]) -> None:
@@ -849,9 +1071,9 @@ def assert_safe_changes(config: HarnessConfig, member: str, files: Iterable[str]
             )
         joined = "\n".join(f"- {path}" for path in unsafe)
         raise HarnessError(
-            "Refusing to sync changes outside the member workspace or integration proposals:\n"
+            "Refusing to sync changes outside the member workspace or this member's integration proposals:\n"
             f"{joined}\n"
-            "Move shared changes into an integration proposal or ask the leader."
+            "Move shared changes into this member's harness-created integration proposal or ask the leader."
         )
 
 
@@ -962,6 +1184,21 @@ def build_parser() -> argparse.ArgumentParser:
     sync.add_argument("--message")
     sync.add_argument("--title")
     sync.add_argument("--dry-run", action="store_true")
+
+    decision = subparsers.add_parser("decision", help="Create or resolve leader decision items")
+    decision_subparsers = decision.add_subparsers(dest="decision_command", required=True)
+    decision_create = decision_subparsers.add_parser("create", help="Create a pending leader decision")
+    decision_create.add_argument("--title", required=True)
+    decision_create.add_argument("--urgency", default="warning", choices=("info", "warning", "urgent"))
+    decision_create.add_argument("--reason", required=True)
+    decision_create.add_argument("--recommendation", required=True)
+    decision_create.add_argument("--member")
+    decision_create.add_argument("--proposal")
+    decision_create.add_argument("--choices")
+    decision_resolve = decision_subparsers.add_parser("resolve", help="Resolve a pending leader decision")
+    decision_resolve.add_argument("decision_id")
+    decision_resolve.add_argument("--status", required=True, choices=("approved", "rejected", "changes_requested", "deferred", "executed"))
+    decision_resolve.add_argument("--notes")
     return parser
 
 
@@ -1010,6 +1247,24 @@ def main(argv: list[str] | None = None) -> int:
                 print(dry_run_sync(config, member))
             else:
                 print(sync_changes(config, member, args.message, args.title))
+        elif args.command == "decision":
+            if args.decision_command == "create":
+                path = create_leader_decision(
+                    config,
+                    args.title,
+                    args.reason,
+                    args.recommendation,
+                    args.urgency,
+                    args.member,
+                    args.proposal,
+                    args.choices,
+                )
+                create_dashboard(config)
+                print(path.relative_to(REPO_ROOT))
+            elif args.decision_command == "resolve":
+                path = resolve_leader_decision(config, args.decision_id, args.status, args.notes)
+                create_dashboard(config)
+                print(path.relative_to(REPO_ROOT))
         else:
             parser.error(f"Unknown command: {args.command}")
     except HarnessError as error:

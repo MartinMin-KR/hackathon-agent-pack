@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-27T12:50:48.634953+00:00",
+  "generated_at": "2026-06-27T13:05:28.101415+00:00",
   "summary": {
     "members": 7,
     "proposals": 0,
@@ -82,6 +82,7 @@
   "proposals": [],
   "pending_decisions": [],
   "risks": [],
+  "decision_items": [],
   "leader": {
     "hermes_target": "discord:#hackathon-leader",
     "decision_log": "leader-decisions/decision-log.jsonl"
