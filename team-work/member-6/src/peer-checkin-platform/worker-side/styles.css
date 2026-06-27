@@ -1,0 +1,267 @@
+:root {
+  color-scheme: light;
+  --bg: #f4f7f2;
+  --surface: #ffffff;
+  --text: #1f2a26;
+  --muted: #60706b;
+  --line: #d9e3dd;
+  --green: #2f7d62;
+  --blue: #2e6f9e;
+  --blue-soft: #dfeefa;
+  --mint: #dff1e9;
+  --warn: #9a741f;
+  --warn-soft: #f6edcf;
+  --shadow: 0 18px 45px rgba(31, 42, 38, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+
+button {
+  font: inherit;
+}
+
+.app-shell {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.topbar,
+.panel-heading,
+.hero,
+.queue-top,
+.member-card,
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.topbar {
+  align-items: center;
+  padding-bottom: 20px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 0;
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.05;
+}
+
+h2 {
+  margin-bottom: 8px;
+  font-size: 1.4rem;
+  line-height: 1.25;
+}
+
+.back-link,
+.filter-button,
+.queue-action {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.dashboard,
+.grid,
+.metrics,
+.member-list,
+.queue-list,
+.activity-list,
+.hero-pills {
+  display: grid;
+  gap: 16px;
+}
+
+.hero,
+.panel,
+.metric-card {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.hero {
+  background: linear-gradient(135deg, #ffffff 0%, #eef8f3 58%, #e9f2fb 100%);
+}
+
+.hero p,
+.panel p,
+.metric-card span,
+.activity-item span,
+.member-card p,
+.queue-summary {
+  color: var(--muted);
+}
+
+.hero-pills {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: start;
+}
+
+.pill,
+.status-pill,
+.queue-state {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.pill,
+.status-pill {
+  background: var(--mint);
+  color: var(--green);
+}
+
+.metrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.metric-card {
+  text-align: center;
+}
+
+.metric-card strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 2rem;
+}
+
+.metric-card.warn {
+  background: #fff9ef;
+}
+
+.metric-card.calm {
+  background: #f2f8ff;
+}
+
+.grid {
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+}
+
+.member-list,
+.queue-list,
+.activity-list {
+  padding-left: 0;
+  list-style: none;
+}
+
+.member-card,
+.queue-card,
+.activity-item {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fbfdfc;
+}
+
+.member-card {
+  align-items: center;
+}
+
+.avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-weight: 900;
+}
+
+.queue-card {
+  display: grid;
+  gap: 12px;
+}
+
+.queue-state {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.queue-card.reviewed .queue-state {
+  background: var(--mint);
+  color: var(--green);
+}
+
+.queue-summary {
+  margin-bottom: 0;
+  line-height: 1.5;
+}
+
+.queue-action {
+  justify-self: start;
+}
+
+.activity-item {
+  align-items: center;
+}
+
+.activity-item strong,
+.activity-item span {
+  display: block;
+}
+
+.boundary-panel p:last-child {
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+
+@media (max-width: 920px) {
+  .metrics,
+  .grid,
+  .hero-pills {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar,
+  .hero,
+  .panel-heading,
+  .member-card,
+  .activity-item,
+  .queue-top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

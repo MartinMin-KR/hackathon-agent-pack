@@ -1,26 +1,34 @@
-# Peer Check-in Platform MVP
+# Peer Check-in Platform Split Workspace
 
-This is a local clickable prototype for member-6's older-adult peer check-in platform idea.
+This workspace restructures member-6's GitHub prototype into two separate local app folders.
+
+## Folders
+
+- `elder-side/`: older-adult user app based on the original member-6 prototype
+- `worker-side/`: social-worker companion dashboard starter
+- `shared/`: shared mock data used by both sides
 
 ## Open
 
-Open `index.html` in a browser.
+- Open `index.html` in this folder to choose a side
+- Or open `elder-side/index.html` directly for the original user-facing app flow
 
-## Included Flows
+## Elder-side Included Flows
 
-- First screen with four large actions.
-- ID-based one-to-one chat with each connected person.
-- Ask/check-in and answer phrases are integrated as quick messages inside the one-to-one chat, not split into separate template screens.
-- Reply-assist choices respond to the other person's latest question and place the selected answer into the input for confirmation.
-- Connection list shows app IDs, broad living area, and shared interests only.
-- Group chat room still exists, but only IDs are shown.
-- Voice input helper for one-to-one chat users who find typing difficult, with browser-support fallback.
-- Microphone permission/device check before voice input.
-- Help/report with a clear emergency-service boundary.
+- First screen with four large actions
+- ID-based one-to-one chat with each connected person
+- Ask/check-in and answer phrases integrated as quick messages inside the one-to-one chat
+- Reply-assist choices that react to the other person's latest question
+- Connection list with app IDs, broad living area, and shared interests only
+- Group chat room with IDs only
+- Voice input helper with browser-support fallback
+- Microphone permission and device check before voice input
+- Help/report with a clear emergency-service boundary
 
-## Boundaries
+## Notes
 
-- No backend, login, database, real matching, GPS, or notification system.
-- Reply-assist choices are local prototype logic, not a real server-side call.
-- No medical diagnosis, medication management, emergency dispatch, or welfare case management.
-- No real-name, exact address, phone number, or detailed health-information exposure.
+- The GitHub source primarily contained elder-user flows
+- The worker-side folder is separated so later welfare/staff work can be edited independently
+- No backend, login, database, real matching, GPS, or notification system
+- No medical diagnosis, medication management, emergency dispatch, or real welfare case management
+- No real-name, exact address, phone number, or detailed health-information exposure

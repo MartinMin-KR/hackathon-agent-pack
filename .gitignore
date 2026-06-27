@@ -11,3 +11,6 @@ tmp/
 work/
 work-ultragoal-brief.txt
 leader-notifications/*.local.json
+.vercel
+
+team-work/member-6/src/peer-checkin-platform/.vercel/
