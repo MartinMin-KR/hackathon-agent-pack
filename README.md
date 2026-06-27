@@ -4,6 +4,10 @@ One leader agent and seven teammate agents for a first-year university hackathon
 
 Teammates use natural language. The agent clarifies the request, researches automatically, simulates Korean persona customer interviews, creates a seed-like spec, executes, evaluates, asks for local approval, and then proposes product changes to the leader.
 
+GitHub repo: https://github.com/MartinMin-KR/hackathon-agent-pack
+
+Vercel dashboard: https://dashboard-xi-lime-40.vercel.app
+
 ## Quick Start
 
 ```bash
@@ -66,6 +70,12 @@ dashboard/index.html
 ```
 
 The same folder is Vercel-ready. Vercel can deploy `dashboard/` as the public output.
+
+Current production dashboard:
+
+```text
+https://dashboard-xi-lime-40.vercel.app
+```
 
 ## Core Commands
 

@@ -4,7 +4,7 @@
 
 1. Pull the latest GitHub changes.
 2. Run `python3 -m harness.hackathon_harness dashboard`.
-3. Open the Vercel dashboard.
+3. Open the Vercel dashboard: `https://dashboard-xi-lime-40.vercel.app`.
 4. Check pending decisions, risks, and proposal queue.
 5. Use Hermes Discord for urgent decisions.
 6. Integrate only accepted proposals.
@@ -30,4 +30,3 @@ Configured target: `discord:#hackathon-leader`.
 Deploy the repo root as a static project. The dashboard lives in `dashboard/`.
 
 The public dashboard must not include API keys, credentials, secrets, or private personal information.
-
