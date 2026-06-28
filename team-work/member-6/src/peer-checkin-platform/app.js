@@ -47,46 +47,46 @@ const replyRecommendationSets = [
 
 const contacts = [
   {
-    id: "다정-102",
-    avatar: "102",
+    id: "김정희",
+    avatar: "🌷",
     shared: "산책 관심",
     status: "오늘 대화 있음",
     privacy: "실명, 정확한 주소, 전화번호는 서로 보이지 않아요.",
     messages: [
-      { author: "다정-102", text: "오늘 컨디션은 어떠세요?", mine: false },
+      { author: "김정희", text: "오늘 컨디션은 어떠세요?", mine: false },
       { author: "나", text: "조금 힘들지만 괜찮아요.", mine: true },
     ],
   },
   {
-    id: "마음-214",
-    avatar: "214",
+    id: "박만수",
+    avatar: "🪴",
     shared: "화분 관심",
     status: "새 안부 가능",
-    privacy: "상대에게는 아이디만 보여요.",
+    privacy: "서로 필요한 정보만 보여요.",
     messages: [
-      { author: "마음-214", text: "식사는 하셨어요?", mine: false },
+      { author: "박만수", text: "식사는 하셨어요?", mine: false },
       { author: "나", text: "물어봐줘서 고마워요.", mine: true },
     ],
   },
   {
-    id: "온기-330",
-    avatar: "330",
+    id: "이영자",
+    avatar: "🎵",
     shared: "트로트 관심",
     status: "어제 대화",
     privacy: "정확한 동호수, 연락처, 실명은 공개하지 않아요.",
     messages: [
       { author: "나", text: "오늘도 좋은 노래 들으셨어요?", mine: true },
-      { author: "온기-330", text: "네, 덕분에 기분이 좋아요.", mine: false },
+      { author: "이영자", text: "네, 덕분에 기분이 좋아요.", mine: false },
     ],
   },
   {
-    id: "이웃-417",
-    avatar: "417",
+    id: "최영수",
+    avatar: "♟️",
     shared: "바둑 관심",
     status: "대화 대기",
     privacy: "서로 동의하기 전에는 개인 신상을 더 열지 않아요.",
     messages: [
-      { author: "이웃-417", text: "잠은 잘 주무셨어요?", mine: false },
+      { author: "최영수", text: "잠은 잘 주무셨어요?", mine: false },
     ],
   },
 ];
@@ -94,7 +94,7 @@ const contacts = [
 const helpChoices = [
   {
     label: "대화가 불편해요",
-    result: "불편 신고가 준비됐어요. 신고에는 상대 아이디만 전달되고 자세한 신상은 공개되지 않습니다.",
+    result: "불편 신고가 준비됐어요. 신고에는 상대 이름만 전달되고 자세한 신상은 공개되지 않습니다.",
   },
   {
     label: "연결된 상대를 바꾸고 싶어요",
@@ -111,14 +111,14 @@ const helpChoices = [
 ];
 
 const groupMessages = [
-  { author: "마음-214", text: "오늘 시장에 다녀왔어요.", mine: false },
-  { author: "온기-330", text: "저녁은 따뜻하게 챙겨 드세요.", mine: false },
+  { author: "박만수", text: "오늘 시장에 다녀왔어요.", mine: false },
+  { author: "이영자", text: "저녁은 따뜻하게 챙겨 드세요.", mine: false },
   { author: "나", text: "물어봐줘서 고마워요.", mine: true },
 ];
 
 const activities = [
-  { title: "다정-102님과 1대1 대화", detail: "오늘 컨디션은 어떠세요?", time: "방금" },
-  { title: "마음-214님에게 답했어요", detail: "물어봐줘서 고마워요", time: "10분 전" },
+  { title: "김정희님과 1대1 대화", detail: "오늘 컨디션은 어떠세요?", time: "방금" },
+  { title: "박만수님에게 답했어요", detail: "물어봐줘서 고마워요", time: "10분 전" },
   { title: "단체방에 글을 남겼어요", detail: "저도 잠깐 들렀어요", time: "25분 전" },
 ];
 

@@ -17,7 +17,7 @@
           <a class="side-link" href="./worker-side/index.html">복지사 사이드</a>
           <div class="status-pill" aria-label="현재 연결 상태">
             <span class="status-dot"></span>
-            ID 4명 연결
+            이웃 연결
           </div>
         </div>
       </header>
@@ -25,7 +25,7 @@
       <main>
         <section class="home-band" aria-labelledby="today-title">
           <div>
-            <h2 id="today-title">아이디로 연결된 이웃과 안부를 나눠요</h2>
+            <h2 id="today-title">이름으로 연결된 이웃과 안부를 나눠요</h2>
           </div>
         </section>
 
@@ -35,7 +35,7 @@
             <span>1대1 대화</span>
           </button>
           <button class="action-button action-network" type="button" data-view="network">
-            <span class="action-icon" aria-hidden="true">ID</span>
+            <span class="action-icon" aria-hidden="true">🙂</span>
             <span>연결 목록</span>
           </button>
           <button class="action-button action-group" type="button" data-view="group">
@@ -66,7 +66,7 @@
                   <div class="private-chat-header">
                     <div>
                       <p class="eyebrow">선택한 상대</p>
-                      <h3 id="private-chat-title">다정-102</h3>
+                      <h3 id="private-chat-title">김정희</h3>
                       <p id="private-chat-meta">1대1 안부 대화</p>
                     </div>
                     <span class="id-badge" id="private-chat-status">오늘 대화 있음</span>
@@ -111,7 +111,7 @@
           <div class="panel view-panel" id="view-network">
             <div class="panel-heading">
               <p class="eyebrow">우리 연결 목록</p>
-              <h2>아이디와 관심사만 간단히 보여요</h2>
+              <h2>이름과 관심사만 간단히 보여요</h2>
             </div>
             <div class="network-list" id="network-list"></div>
             <div class="safety-line">이름, 정확한 주소, 전화번호, 자세한 건강 정보는 공개하지 않아요.</div>
@@ -120,15 +120,15 @@
           <div class="panel view-panel" id="view-group">
             <div class="panel-heading">
               <p class="eyebrow">단체 대화방</p>
-              <h2>모임 전체에는 아이디만 보이는 대화방</h2>
+              <h2>모임 전체에는 이름만 보이는 대화방</h2>
             </div>
             <div class="group-chat" aria-labelledby="group-chat-title">
               <div class="panel-heading chat-heading">
                 <div>
-                  <p class="eyebrow">4명 모임</p>
+                  <p class="eyebrow">이웃 모임</p>
                   <h3 id="group-chat-title">우리 모임 단체방</h3>
                 </div>
-                <span class="id-badge">ID만 표시</span>
+                <span class="id-badge">이름만 표시</span>
               </div>
               <div class="chat-window" id="group-chat-window" role="log" aria-live="polite"></div>
               <div class="ai-reply-panel" aria-labelledby="group-reply-title">
