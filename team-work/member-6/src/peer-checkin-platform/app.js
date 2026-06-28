@@ -4,20 +4,12 @@ const privateQuickMessages = [
   "약은 챙기셨어요?",
   "오늘 컨디션은 어떠세요?",
   "식사는 하셨어요?",
-  "잠은 잘 주무셨어요?",
-  "아픈 곳은 없으세요?",
-  "네, 챙겼어요",
-  "괜찮아요",
-  "조금 힘들어요",
-  "물어봐줘서 고마워요",
 ];
 
 const groupQuickMessages = [
   "오늘 다들 어떠세요?",
   "식사 챙기셨어요?",
   "저도 잠깐 들렀어요",
-  "응원합니다",
-  "고마워요",
 ];
 
 const replyRecommendationSets = [
@@ -57,7 +49,6 @@ const contacts = [
   {
     id: "다정-102",
     avatar: "102",
-    safeArea: "같은 생활권",
     shared: "산책 관심",
     status: "오늘 대화 있음",
     privacy: "실명, 정확한 주소, 전화번호는 서로 보이지 않아요.",
@@ -69,10 +60,9 @@ const contacts = [
   {
     id: "마음-214",
     avatar: "214",
-    safeArea: "버스 2정거장 안팎",
     shared: "화분 관심",
     status: "새 안부 가능",
-    privacy: "상대에게는 아이디와 넓은 생활권만 보여요.",
+    privacy: "상대에게는 아이디만 보여요.",
     messages: [
       { author: "마음-214", text: "식사는 하셨어요?", mine: false },
       { author: "나", text: "물어봐줘서 고마워요.", mine: true },
@@ -81,7 +71,6 @@ const contacts = [
   {
     id: "온기-330",
     avatar: "330",
-    safeArea: "가까운 시장 근처 생활권",
     shared: "트로트 관심",
     status: "어제 대화",
     privacy: "정확한 동호수, 연락처, 실명은 공개하지 않아요.",
@@ -93,7 +82,6 @@ const contacts = [
   {
     id: "이웃-417",
     avatar: "417",
-    safeArea: "도보 15분 안팎",
     shared: "바둑 관심",
     status: "대화 대기",
     privacy: "서로 동의하기 전에는 개인 신상을 더 열지 않아요.",
@@ -110,7 +98,7 @@ const helpChoices = [
   },
   {
     label: "연결된 상대를 바꾸고 싶어요",
-    result: "연결 변경 요청이 준비됐어요. 정확한 주소 없이 가까운 생활권 안에서 다시 배정됩니다.",
+    result: "연결 변경 요청이 준비됐어요. 새 대화 상대를 다시 추천합니다.",
   },
   {
     label: "앱 사용이 어려워요",
@@ -135,26 +123,28 @@ const activities = [
 ];
 
 const actionButtons = document.querySelectorAll(".action-button");
-const summaryCount = document.querySelector("#summary-count");
-const summaryLast = document.querySelector("#summary-last");
+const activityBand = document.querySelector(".activity-band");
+const directListScreen = document.querySelector("#direct-list-screen");
+const directChatScreen = document.querySelector("#direct-chat-screen");
 const contactList = document.querySelector("#contact-list");
 const networkList = document.querySelector("#network-list");
+const privateChatBack = document.querySelector("#private-chat-back");
 const privateChatTitle = document.querySelector("#private-chat-title");
 const privateChatMeta = document.querySelector("#private-chat-meta");
 const privateChatStatus = document.querySelector("#private-chat-status");
 const privatePrivacyNote = document.querySelector("#private-privacy-note");
 const privateChatWindow = document.querySelector("#private-chat-window");
-const aiReplyType = document.querySelector("#ai-reply-type");
-const aiDetectedQuestion = document.querySelector("#ai-detected-question");
 const aiReplyList = document.querySelector("#ai-reply-list");
-const aiReplyNote = document.querySelector("#ai-reply-note");
 const privateQuickActions = document.querySelector("#private-quick-actions");
 const privateChatInput = document.querySelector("#private-chat-input");
 const privateChatSend = document.querySelector("#private-chat-send");
 const groupChatWindow = document.querySelector("#group-chat-window");
+const groupReplyList = document.querySelector("#group-reply-list");
 const groupQuickActions = document.querySelector("#group-quick-actions");
 const groupChatInput = document.querySelector("#group-chat-input");
 const groupChatSend = document.querySelector("#group-chat-send");
+const groupVoiceButton = document.querySelector("#group-voice-button");
+const groupVoiceStatus = document.querySelector("#group-voice-status");
 const helpResult = document.querySelector("#help-result");
 const voiceButton = document.querySelector("#voice-button");
 const voiceStatus = document.querySelector("#voice-status");
@@ -163,8 +153,10 @@ const micSelect = document.querySelector("#mic-select");
 const micDeviceStatus = document.querySelector("#mic-device-status");
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let activeContactId = contacts[0].id;
+let isPrivateChatOpen = false;
 let speechRecognition = null;
 let isListening = false;
+let activeVoiceTarget = "private";
 let selectedMicId = "";
 
 function getActiveContact() {
@@ -173,6 +165,10 @@ function getActiveContact() {
 
 function getLastIncomingMessage(contact) {
   return [...contact.messages].reverse().find((message) => !message.mine);
+}
+
+function getLastIncomingGroupMessage() {
+  return [...groupMessages].reverse().find((message) => !message.mine);
 }
 
 function getReplyRecommendation(messageText) {
@@ -188,6 +184,24 @@ function getReplyRecommendation(messageText) {
   };
 }
 
+function getGroupReplyRecommendation(messageText) {
+  const normalizedText = messageText.replace(/\s/g, "");
+
+  if (normalizedText.includes("시장") || normalizedText.includes("다녀")) {
+    return ["다녀오시느라 수고하셨어요", "오늘도 조심히 다녀오셨어요?", "저도 반가워요"];
+  }
+
+  if (normalizedText.includes("저녁") || normalizedText.includes("식사") || normalizedText.includes("따뜻")) {
+    return ["네, 따뜻하게 챙길게요", "다들 식사 챙기세요", "말해줘서 고마워요"];
+  }
+
+  if (normalizedText.includes("응원") || normalizedText.includes("고마")) {
+    return ["고마워요", "저도 응원할게요", "덕분에 힘이 나요"];
+  }
+
+  return ["고마워요", "저도 함께할게요", "오늘도 잘 지내봐요"];
+}
+
 function setView(nextView) {
   views.forEach((view) => {
     document.querySelector(`#view-${view}`).classList.toggle("is-visible", view === nextView);
@@ -196,12 +210,17 @@ function setView(nextView) {
   actionButtons.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.view === nextView);
   });
+
+  if (nextView === "direct") {
+    showPrivateList();
+  } else {
+    isPrivateChatOpen = false;
+    activityBand.hidden = nextView === "help";
+  }
 }
 
 function addActivity(title, detail) {
   activities.unshift({ title, detail, time: "방금" });
-  summaryCount.textContent = `오늘 ${activities.length}번 대화가 오갔어요`;
-  summaryLast.textContent = `마지막 대화: ${detail}`;
   renderActivities();
 }
 
@@ -220,10 +239,24 @@ function renderChoices(targetId, items, onSelect) {
   });
 }
 
-function selectContact(contactId) {
+function updatePrivateFlow() {
+  directListScreen.classList.toggle("is-hidden", isPrivateChatOpen);
+  directChatScreen.classList.toggle("is-hidden", !isPrivateChatOpen);
+  activityBand.hidden = isPrivateChatOpen;
+}
+
+function showPrivateList() {
+  isPrivateChatOpen = false;
+  renderContactList();
+  updatePrivateFlow();
+}
+
+function openPrivateChat(contactId) {
   activeContactId = contactId;
+  isPrivateChatOpen = true;
   renderContactList();
   renderPrivateChat();
+  updatePrivateFlow();
 }
 
 function renderContactList() {
@@ -231,17 +264,16 @@ function renderContactList() {
 
   contacts.forEach((contact) => {
     const button = document.createElement("button");
-    button.className = `contact-card${contact.id === activeContactId ? " is-active" : ""}`;
+    button.className = `contact-card${isPrivateChatOpen && contact.id === activeContactId ? " is-active" : ""}`;
     button.type = "button";
     button.innerHTML = `
       <span class="avatar" aria-hidden="true">${contact.avatar}</span>
       <span>
         <span class="contact-id">${contact.id}</span>
-        <span class="contact-meta">${contact.safeArea}<br />${contact.shared}</span>
       </span>
       <span class="id-badge">${contact.status}</span>
     `;
-    button.addEventListener("click", () => selectContact(contact.id));
+    button.addEventListener("click", () => openPrivateChat(contact.id));
     contactList.appendChild(button);
   });
 }
@@ -256,14 +288,14 @@ function renderNetworkList() {
       <div class="avatar" aria-hidden="true">${contact.avatar}</div>
       <div>
         <span class="contact-id">${contact.id}</span>
-        <div class="contact-meta">${contact.safeArea}<br />공통 관심: ${contact.shared}</div>
+        <div class="contact-meta">관심사: ${contact.shared}</div>
         <p>${contact.privacy}</p>
       </div>
       <button class="network-action" type="button">1대1 대화</button>
     `;
     card.querySelector(".network-action").addEventListener("click", () => {
-      selectContact(contact.id);
       setView("direct");
+      openPrivateChat(contact.id);
     });
     networkList.appendChild(card);
   });
@@ -272,7 +304,7 @@ function renderNetworkList() {
 function renderPrivateChat() {
   const contact = getActiveContact();
   privateChatTitle.textContent = contact.id;
-  privateChatMeta.textContent = `${contact.safeArea}, ${contact.shared}`;
+  privateChatMeta.textContent = "1대1 안부 대화";
   privateChatStatus.textContent = contact.status;
   privatePrivacyNote.textContent = contact.privacy;
   privateChatWindow.innerHTML = "";
@@ -296,16 +328,10 @@ function renderAiReplySuggestions(contact) {
   aiReplyList.innerHTML = "";
 
   if (!lastIncomingMessage) {
-    aiReplyType.textContent = "답변 대기";
-    aiDetectedQuestion.textContent = "아직 상대가 물어본 질문이 없어요.";
-    aiReplyNote.textContent = "상대 질문이 도착하면 편하게 고를 답변이 보여요.";
     return;
   }
 
   const recommendation = getReplyRecommendation(lastIncomingMessage.text);
-  aiReplyType.textContent = recommendation.type;
-  aiDetectedQuestion.textContent = `${contact.id}님 질문: ${lastIncomingMessage.text}`;
-  aiReplyNote.textContent = recommendation.guide;
 
   recommendation.replies.forEach((reply) => {
     const button = document.createElement("button");
@@ -314,7 +340,6 @@ function renderAiReplySuggestions(contact) {
     button.textContent = reply;
     button.addEventListener("click", () => {
       privateChatInput.value = reply;
-      aiReplyNote.textContent = "고른 답을 입력칸에 넣었어요. 확인하고 보내기를 눌러주세요.";
       privateChatInput.focus();
     });
     aiReplyList.appendChild(button);
@@ -364,6 +389,28 @@ function renderGroupChat() {
   });
 
   groupChatWindow.scrollTop = groupChatWindow.scrollHeight;
+  renderGroupReplySuggestions();
+}
+
+function renderGroupReplySuggestions() {
+  const lastIncomingMessage = getLastIncomingGroupMessage();
+  groupReplyList.innerHTML = "";
+
+  if (!lastIncomingMessage) {
+    return;
+  }
+
+  getGroupReplyRecommendation(lastIncomingMessage.text).forEach((reply) => {
+    const button = document.createElement("button");
+    button.className = "ai-reply-button";
+    button.type = "button";
+    button.textContent = reply;
+    button.addEventListener("click", () => {
+      groupChatInput.value = reply;
+      groupChatInput.focus();
+    });
+    groupReplyList.appendChild(button);
+  });
 }
 
 function sendGroupMessage(text) {
@@ -391,17 +438,46 @@ function renderGroupQuickActions() {
   });
 }
 
+function getVoiceTarget(target = activeVoiceTarget) {
+  if (target === "group") {
+    return {
+      button: groupVoiceButton,
+      input: groupChatInput,
+      status: groupVoiceStatus,
+      successMessage: "들은 내용을 단체방 입력칸에 넣었어요. 확인 후 보내기를 눌러주세요.",
+    };
+  }
+
+  return {
+    button: voiceButton,
+    input: privateChatInput,
+    status: voiceStatus,
+    successMessage: "들은 내용을 1대1 대화 입력칸에 넣었어요. 확인 후 보내기를 눌러주세요.",
+  };
+}
+
+function setVoiceStatus(message, target = activeVoiceTarget) {
+  getVoiceTarget(target).status.textContent = message;
+}
+
 function setVoiceListening(nextListening) {
   isListening = nextListening;
-  voiceButton.classList.toggle("is-listening", nextListening);
-  voiceButton.setAttribute("aria-pressed", String(nextListening));
-  voiceButton.textContent = nextListening ? "듣는 중" : "음성 입력";
+
+  [voiceButton, groupVoiceButton].forEach((button) => {
+    const isActiveButton = nextListening && button === getVoiceTarget().button;
+    button.classList.toggle("is-listening", isActiveButton);
+    button.setAttribute("aria-pressed", String(isActiveButton));
+    button.textContent = isActiveButton ? "듣는 중" : "음성 입력";
+  });
 }
 
 function setupVoiceInput() {
   if (!SpeechRecognition) {
-    voiceButton.disabled = true;
+    [voiceButton, groupVoiceButton].forEach((button) => {
+      button.disabled = true;
+    });
     voiceStatus.textContent = "이 브라우저에서는 음성 입력을 지원하지 않아요. 빠른 말 버튼을 이용해 주세요.";
+    groupVoiceStatus.textContent = "이 브라우저에서는 음성 입력을 지원하지 않아요. 빠른 말 버튼을 이용해 주세요.";
     return;
   }
 
@@ -412,19 +488,20 @@ function setupVoiceInput() {
 
   speechRecognition.addEventListener("start", () => {
     setVoiceListening(true);
-    voiceStatus.textContent = "말씀해 주세요. 듣고 있어요.";
+    setVoiceStatus("말씀해 주세요. 듣고 있어요.");
   });
 
   speechRecognition.addEventListener("result", (event) => {
     const transcript = event.results?.[0]?.[0]?.transcript?.trim() ?? "";
     if (transcript.length === 0) {
-      voiceStatus.textContent = "말소리를 잘 듣지 못했어요. 다시 한 번 눌러주세요.";
+      setVoiceStatus("말소리를 잘 듣지 못했어요. 다시 한 번 눌러주세요.");
       return;
     }
 
-    privateChatInput.value = transcript.slice(0, 40);
-    voiceStatus.textContent = "들은 내용을 1대1 대화 입력칸에 넣었어요. 확인 후 보내기를 눌러주세요.";
-    privateChatInput.focus();
+    const target = getVoiceTarget();
+    target.input.value = transcript.slice(0, 40);
+    target.status.textContent = target.successMessage;
+    target.input.focus();
   });
 
   speechRecognition.addEventListener("error", (event) => {
@@ -433,12 +510,32 @@ function setupVoiceInput() {
       "no-speech": "말소리를 듣지 못했어요. 조용한 곳에서 다시 눌러주세요.",
       network: "음성 인식 연결이 불안정해요. 빠른 말 버튼을 이용해 주세요.",
     };
-    voiceStatus.textContent = messages[event.error] ?? "음성 입력이 잠시 어려워요. 빠른 말 버튼을 이용해 주세요.";
+    setVoiceStatus(messages[event.error] ?? "음성 입력이 잠시 어려워요. 빠른 말 버튼을 이용해 주세요.");
   });
 
   speechRecognition.addEventListener("end", () => {
     setVoiceListening(false);
   });
+}
+
+function startVoiceInput(target) {
+  if (!speechRecognition) {
+    setVoiceStatus("이 브라우저에서는 음성 입력을 지원하지 않아요. 빠른 말 버튼을 이용해 주세요.", target);
+    return;
+  }
+
+  if (isListening) {
+    speechRecognition.stop();
+    return;
+  }
+
+  activeVoiceTarget = target;
+
+  try {
+    speechRecognition.start();
+  } catch {
+    setVoiceStatus("이미 음성 입력을 준비하고 있어요. 잠시 뒤 다시 눌러주세요.", target);
+  }
 }
 
 function setMicStatus(message) {
@@ -535,6 +632,10 @@ actionButtons.forEach((button) => {
   button.addEventListener("click", () => setView(button.dataset.view));
 });
 
+privateChatBack.addEventListener("click", () => {
+  showPrivateList();
+});
+
 privateChatSend.addEventListener("click", () => sendPrivateMessage(privateChatInput.value));
 
 privateChatInput.addEventListener("keydown", (event) => {
@@ -551,23 +652,9 @@ groupChatInput.addEventListener("keydown", (event) => {
   }
 });
 
-voiceButton.addEventListener("click", () => {
-  if (!speechRecognition) {
-    voiceStatus.textContent = "이 브라우저에서는 음성 입력을 지원하지 않아요. 빠른 말 버튼을 이용해 주세요.";
-    return;
-  }
+voiceButton.addEventListener("click", () => startVoiceInput("private"));
 
-  if (isListening) {
-    speechRecognition.stop();
-    return;
-  }
-
-  try {
-    speechRecognition.start();
-  } catch {
-    voiceStatus.textContent = "이미 음성 입력을 준비하고 있어요. 잠시 뒤 다시 눌러주세요.";
-  }
-});
+groupVoiceButton.addEventListener("click", () => startVoiceInput("group"));
 
 micCheck.addEventListener("click", () => {
   checkMicrophoneConnection();
@@ -600,3 +687,4 @@ renderGroupQuickActions();
 renderGroupChat();
 setupVoiceInput();
 renderActivities();
+showPrivateList();
