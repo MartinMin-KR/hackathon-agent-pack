@@ -163,7 +163,7 @@ h2 {
 
 .home-band {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.8fr);
   align-items: stretch;
   gap: 18px;
   padding: 24px;
@@ -171,6 +171,38 @@ h2 {
   border-radius: 8px;
   background: linear-gradient(135deg, #ffffff 0%, #eef8f3 58%, #e9f2fb 100%);
   box-shadow: var(--shadow);
+}
+
+.home-band p {
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 1.06rem;
+  line-height: 1.55;
+  font-weight: 700;
+}
+
+.home-status-list {
+  display: grid;
+  gap: 10px;
+}
+
+.home-status-list div {
+  display: grid;
+  gap: 3px;
+  padding: 14px;
+  border: 1px solid rgba(47, 125, 98, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.home-status-list strong {
+  font-size: 1.04rem;
+}
+
+.home-status-list span {
+  color: var(--muted);
+  font-weight: 800;
+  line-height: 1.4;
 }
 
 .action-grid {
@@ -182,9 +214,9 @@ h2 {
 
 .action-button {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
+  grid-template-columns: 48px minmax(0, 1fr);
   align-items: center;
-  min-height: 96px;
+  min-height: 104px;
   gap: 12px;
   padding: 16px;
   border: 2px solid transparent;
@@ -199,6 +231,7 @@ h2 {
 }
 
 .action-button:focus-visible,
+.side-link:focus-visible,
 .choice-button:focus-visible,
 .contact-card:focus-visible,
 .network-action:focus-visible,
@@ -218,9 +251,10 @@ h2 {
 .action-icon {
   display: inline-grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
+  font-size: 1.22rem;
   font-weight: 900;
 }
 
@@ -343,12 +377,12 @@ h2 {
 
 .contact-card {
   display: grid;
-  grid-template-columns: 56px minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  gap: 14px;
   align-items: center;
-  min-height: 112px;
+  min-height: 118px;
   width: 100%;
-  padding: 14px;
+  padding: 16px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fbfdfc;
@@ -360,16 +394,17 @@ h2 {
 .contact-card.is-active {
   border-color: var(--green);
   background: #f0faf5;
+  box-shadow: 0 12px 26px rgba(47, 125, 98, 0.12);
 }
 
 .contact-card .id-badge {
-  grid-column: 1 / -1;
+  justify-self: end;
 }
 
 .contact-id {
   display: block;
-  margin-bottom: 4px;
-  font-size: 1.08rem;
+  margin-bottom: 6px;
+  font-size: 1.18rem;
   font-weight: 900;
 }
 
@@ -388,10 +423,10 @@ h2 {
 }
 
 .private-chat-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
   margin-bottom: 12px;
 }
 
@@ -531,13 +566,19 @@ h2 {
 .avatar {
   display: grid;
   place-items: center;
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   background: var(--mint);
   color: var(--green);
-  font-size: 1.15rem;
+  font-size: 1.72rem;
   font-weight: 900;
+}
+
+.avatar-large {
+  width: 64px;
+  height: 64px;
+  font-size: 1.85rem;
 }
 
 .member-card:nth-child(2) .avatar {
@@ -971,9 +1012,29 @@ h2 {
     padding: 12px;
   }
 
+  .contact-card .id-badge {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .avatar {
+    width: 44px;
+    height: 44px;
+    font-size: 1.25rem;
+  }
+
   .private-chat,
   .group-chat {
     padding: 12px;
+  }
+
+  .private-chat-header {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .private-chat-header .id-badge {
+    grid-column: 1 / -1;
+    justify-self: start;
   }
 
   .private-chat-header h3 {
@@ -1030,7 +1091,6 @@ h2 {
   }
 
   .mic-settings-header,
-  .private-chat-header,
   .ai-reply-header {
     align-items: stretch;
     flex-direction: column;

@@ -50,6 +50,7 @@ const contacts = [
     id: "김정희",
     avatar: "🌷",
     shared: "산책 관심",
+    note: "아침 산책 이야기를 자주 나눠요.",
     status: "오늘 대화 있음",
     privacy: "실명, 정확한 주소, 전화번호는 서로 보이지 않아요.",
     messages: [
@@ -61,6 +62,7 @@ const contacts = [
     id: "박만수",
     avatar: "🪴",
     shared: "화분 관심",
+    note: "화분 물주기와 식사 안부를 챙겨요.",
     status: "새 안부 가능",
     privacy: "서로 필요한 정보만 보여요.",
     messages: [
@@ -72,6 +74,7 @@ const contacts = [
     id: "이영자",
     avatar: "🎵",
     shared: "트로트 관심",
+    note: "좋아하는 노래로 가볍게 말을 시작해요.",
     status: "어제 대화",
     privacy: "정확한 동호수, 연락처, 실명은 공개하지 않아요.",
     messages: [
@@ -83,6 +86,7 @@ const contacts = [
     id: "최영수",
     avatar: "♟️",
     shared: "바둑 관심",
+    note: "수면과 컨디션 안부를 천천히 나눠요.",
     status: "대화 대기",
     privacy: "서로 동의하기 전에는 개인 신상을 더 열지 않아요.",
     messages: [
@@ -134,6 +138,7 @@ const privateChatMeta = document.querySelector("#private-chat-meta");
 const privateChatStatus = document.querySelector("#private-chat-status");
 const privatePrivacyNote = document.querySelector("#private-privacy-note");
 const privateChatWindow = document.querySelector("#private-chat-window");
+const privateChatAvatar = document.querySelector("#private-chat-avatar");
 const aiReplyList = document.querySelector("#ai-reply-list");
 const privateQuickActions = document.querySelector("#private-quick-actions");
 const privateChatInput = document.querySelector("#private-chat-input");
@@ -270,6 +275,7 @@ function renderContactList() {
       <span class="avatar" aria-hidden="true">${contact.avatar}</span>
       <span>
         <span class="contact-id">${contact.id}</span>
+        <span class="contact-meta">${contact.shared}<br />${contact.note}</span>
       </span>
       <span class="id-badge">${contact.status}</span>
     `;
@@ -303,8 +309,9 @@ function renderNetworkList() {
 
 function renderPrivateChat() {
   const contact = getActiveContact();
+  privateChatAvatar.textContent = contact.avatar;
   privateChatTitle.textContent = contact.id;
-  privateChatMeta.textContent = "1대1 안부 대화";
+  privateChatMeta.textContent = `${contact.shared} · ${contact.note}`;
   privateChatStatus.textContent = contact.status;
   privatePrivacyNote.textContent = contact.privacy;
   privateChatWindow.innerHTML = "";

@@ -26,12 +26,23 @@
         <section class="home-band" aria-labelledby="today-title">
           <div>
             <h2 id="today-title">이름으로 연결된 이웃과 안부를 나눠요</h2>
+            <p>편한 사람을 고르고, 준비된 문장이나 음성으로 짧게 마음을 전하세요.</p>
+          </div>
+          <div class="home-status-list" aria-label="오늘의 안부 상태">
+            <div>
+              <strong>오늘 2명</strong>
+              <span>안부를 주고받았어요</span>
+            </div>
+            <div>
+              <strong>개인정보 보호</strong>
+              <span>주소와 전화번호는 보이지 않아요</span>
+            </div>
           </div>
         </section>
 
         <nav class="action-grid" aria-label="첫 화면 주요 행동">
           <button class="action-button action-direct is-active" type="button" data-view="direct">
-            <span class="action-icon" aria-hidden="true">1</span>
+            <span class="action-icon" aria-hidden="true">💬</span>
             <span>1대1 대화</span>
           </button>
           <button class="action-button action-network" type="button" data-view="network">
@@ -39,11 +50,11 @@
             <span>연결 목록</span>
           </button>
           <button class="action-button action-group" type="button" data-view="group">
-            <span class="action-icon" aria-hidden="true">4</span>
+            <span class="action-icon" aria-hidden="true">👥</span>
             <span>단체방</span>
           </button>
           <button class="action-button action-help" type="button" data-view="help">
-            <span class="action-icon" aria-hidden="true">i</span>
+            <span class="action-icon" aria-hidden="true">?</span>
             <span>도움 요청 / 불편 신고</span>
           </button>
         </nav>
@@ -52,11 +63,11 @@
           <div class="panel view-panel is-visible" id="view-direct">
             <div class="panel-heading">
               <p class="eyebrow">개별 안부 대화</p>
-              <h2>이야기할 ID를 고르고 1대1로 말해요</h2>
+              <h2>이야기할 사람을 고르고 1대1로 말해요</h2>
             </div>
             <div class="private-flow">
               <div class="direct-list-screen" id="direct-list-screen">
-                <div class="section-label">연결된 ID</div>
+                <div class="section-label">연결된 이웃</div>
                 <div class="contact-list" id="contact-list"></div>
               </div>
 
@@ -64,6 +75,7 @@
                 <button class="back-button" id="private-chat-back" type="button">목록으로</button>
                 <div class="private-chat" aria-labelledby="private-chat-title">
                   <div class="private-chat-header">
+                    <span class="avatar avatar-large" id="private-chat-avatar" aria-hidden="true">🌷</span>
                     <div>
                       <p class="eyebrow">선택한 상대</p>
                       <h3 id="private-chat-title">김정희</h3>
