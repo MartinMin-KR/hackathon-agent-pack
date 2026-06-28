@@ -80,6 +80,14 @@ main {
   padding: 10px 0 20px;
 }
 
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .eyebrow {
   margin: 0 0 6px;
   color: var(--muted);
@@ -119,6 +127,25 @@ h2 {
   color: var(--muted);
   font-weight: 700;
   white-space: nowrap;
+}
+
+.side-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(46, 111, 158, 0.28);
+  border-radius: 999px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.side-link:hover {
+  border-color: var(--blue);
+  background: #d4e8f8;
 }
 
 .status-dot {
