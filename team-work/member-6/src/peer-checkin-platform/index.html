@@ -151,8 +151,19 @@
               <p class="eyebrow">도움 요청 / 불편 신고</p>
               <h2>불편하면 바로 멈출 수 있어요</h2>
             </div>
-            <div class="choice-list" id="help-list"></div>
-            <div class="result-box" id="help-result">필요한 항목을 하나 골라주세요.</div>
+            <div class="help-flow">
+              <div class="help-list-screen" id="help-list-screen">
+                <div class="choice-list" id="help-list"></div>
+              </div>
+              <div class="help-detail-screen is-hidden" id="help-detail-screen">
+                <button class="back-button" id="help-detail-back" type="button">목록으로</button>
+                <div class="panel-heading">
+                  <p class="eyebrow">선택한 도움</p>
+                  <h3 id="help-detail-title">도움 요청</h3>
+                </div>
+                <div class="help-action-list" id="help-action-list"></div>
+              </div>
+            </div>
           </div>
         </section>
 
