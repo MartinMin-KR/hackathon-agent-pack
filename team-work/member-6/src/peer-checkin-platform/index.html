@@ -2,128 +2,170 @@
 <html lang="ko">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>다정모임 분리 워크스페이스</title>
-    <style>
-      :root {
-        color-scheme: light;
-        --bg: #f4f7f2;
-        --surface: #ffffff;
-        --text: #1f2a26;
-        --muted: #60706b;
-        --line: #d9e3dd;
-        --green: #2f7d62;
-        --blue: #2e6f9e;
-        --shadow: 0 18px 45px rgba(31, 42, 38, 0.1);
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      body {
-        margin: 0;
-        min-height: 100vh;
-        display: grid;
-        place-items: center;
-        padding: 24px;
-        background: var(--bg);
-        color: var(--text);
-        font-family: Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-      }
-
-      main {
-        width: min(920px, 100%);
-        display: grid;
-        gap: 18px;
-      }
-
-      .hero,
-      .card {
-        padding: 24px;
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        background: var(--surface);
-        box-shadow: var(--shadow);
-      }
-
-      .hero p,
-      .card p {
-        margin: 0;
-        color: var(--muted);
-        line-height: 1.5;
-      }
-
-      .launcher {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 18px;
-      }
-
-      a.card {
-        text-decoration: none;
-        color: inherit;
-      }
-
-      .eyebrow {
-        margin: 0 0 8px;
-        color: var(--muted);
-        font-size: 0.88rem;
-        font-weight: 700;
-      }
-
-      h1,
-      h2 {
-        margin: 0 0 10px;
-        letter-spacing: 0;
-      }
-
-      .pill {
-        display: inline-flex;
-        min-height: 40px;
-        align-items: center;
-        padding: 0 12px;
-        border-radius: 999px;
-        color: #fff;
-        font-weight: 700;
-      }
-
-      .pill.elder {
-        background: var(--green);
-      }
-
-      .pill.worker {
-        background: var(--blue);
-      }
-
-      @media (max-width: 720px) {
-        .launcher {
-          grid-template-columns: 1fr;
-        }
-      }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>다정모임</title>
+    <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main>
-      <section class="hero">
-        <p class="eyebrow">member-6 split workspace</p>
-        <h1>다정모임 코드를 두 사이드로 분리했습니다</h1>
-        <p>어르신 앱과 복지사 화면을 따로 열 수 있게 나눴고, 공통 데이터는 shared 폴더로 옮겼습니다.</p>
-      </section>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">오늘의 작은 안부</p>
+          <h1>다정모임</h1>
+        </div>
+        <div class="status-pill" aria-label="현재 연결 상태">
+          <span class="status-dot"></span>
+          ID 4명 연결
+        </div>
+      </header>
 
-      <section class="launcher" aria-label="분리된 앱 진입">
-        <a class="card" href="./elder-side/index.html">
-          <span class="pill elder">어르신 사이드</span>
-          <h2>elder-side</h2>
-          <p>승환님 원본 흐름을 이어받은 사용자용 앱입니다.</p>
-        </a>
+      <main>
+        <section class="home-band" aria-labelledby="today-title">
+          <div>
+            <h2 id="today-title">아이디로 연결된 이웃과 안부를 나눠요</h2>
+          </div>
+        </section>
 
-        <a class="card" href="./worker-side/index.html">
-          <span class="pill worker">복지사 사이드</span>
-          <h2>worker-side</h2>
-          <p>같은 서비스 문맥을 바탕으로 분리한 복지사 전용 스타터 화면입니다.</p>
-        </a>
-      </section>
-    </main>
+        <nav class="action-grid" aria-label="첫 화면 주요 행동">
+          <button class="action-button action-direct is-active" type="button" data-view="direct">
+            <span class="action-icon" aria-hidden="true">1</span>
+            <span>1대1 대화</span>
+          </button>
+          <button class="action-button action-network" type="button" data-view="network">
+            <span class="action-icon" aria-hidden="true">ID</span>
+            <span>연결 목록</span>
+          </button>
+          <button class="action-button action-group" type="button" data-view="group">
+            <span class="action-icon" aria-hidden="true">4</span>
+            <span>단체방</span>
+          </button>
+          <button class="action-button action-help" type="button" data-view="help">
+            <span class="action-icon" aria-hidden="true">i</span>
+            <span>도움 요청 / 불편 신고</span>
+          </button>
+        </nav>
+
+        <section class="workspace" aria-live="polite">
+          <div class="panel view-panel is-visible" id="view-direct">
+            <div class="panel-heading">
+              <p class="eyebrow">개별 안부 대화</p>
+              <h2>이야기할 ID를 고르고 1대1로 말해요</h2>
+            </div>
+            <div class="private-flow">
+              <div class="direct-list-screen" id="direct-list-screen">
+                <div class="section-label">연결된 ID</div>
+                <div class="contact-list" id="contact-list"></div>
+              </div>
+
+              <div class="direct-chat-screen is-hidden" id="direct-chat-screen">
+                <button class="back-button" id="private-chat-back" type="button">목록으로</button>
+                <div class="private-chat" aria-labelledby="private-chat-title">
+                  <div class="private-chat-header">
+                    <div>
+                      <p class="eyebrow">선택한 상대</p>
+                      <h3 id="private-chat-title">다정-102</h3>
+                      <p id="private-chat-meta">1대1 안부 대화</p>
+                    </div>
+                    <span class="id-badge" id="private-chat-status">오늘 대화 있음</span>
+                  </div>
+                  <div class="privacy-note" id="private-privacy-note">
+                    실명, 정확한 주소, 전화번호는 서로 보이지 않아요.
+                  </div>
+                  <div class="chat-window" id="private-chat-window" role="log" aria-live="polite"></div>
+                  <div class="ai-reply-panel" aria-labelledby="ai-reply-title">
+                    <div class="ai-reply-header">
+                      <h4 id="ai-reply-title">답변 도움</h4>
+                    </div>
+                    <div class="ai-reply-list" id="ai-reply-list" aria-label="답변 후보"></div>
+                  </div>
+                  <div class="chat-quick-actions" id="private-quick-actions" aria-label="1대1 대화 빠른 말"></div>
+                  <label class="chat-input-label" for="private-chat-input">직접 짧게 말하기</label>
+                  <div class="chat-compose">
+                    <input id="private-chat-input" type="text" maxlength="40" placeholder="예: 오늘 컨디션은 어떠세요?" />
+                    <button class="voice-button" id="voice-button" type="button" aria-pressed="false">음성 입력</button>
+                    <button class="chat-send" id="private-chat-send" type="button">보내기</button>
+                  </div>
+                  <p class="voice-status" id="voice-status" role="status">마이크를 누르면 말한 내용이 입력칸에 들어와요.</p>
+                  <div class="mic-settings" aria-labelledby="mic-settings-title">
+                    <div class="mic-settings-header">
+                      <div>
+                        <p class="eyebrow">마이크 권한 / 기기 연결</p>
+                        <h4 id="mic-settings-title">말하기 전에 마이크를 확인해요</h4>
+                      </div>
+                      <button class="mic-check" id="mic-check" type="button">마이크 연결 확인</button>
+                    </div>
+                    <label class="mic-select-label" for="mic-select">사용할 마이크</label>
+                    <select id="mic-select" disabled>
+                      <option value="">연결 확인 후 선택할 수 있어요</option>
+                    </select>
+                    <p class="mic-device-status" id="mic-device-status" role="status">마이크 권한을 아직 확인하지 않았어요.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel view-panel" id="view-network">
+            <div class="panel-heading">
+              <p class="eyebrow">우리 연결 목록</p>
+              <h2>아이디와 관심사만 간단히 보여요</h2>
+            </div>
+            <div class="network-list" id="network-list"></div>
+            <div class="safety-line">이름, 정확한 주소, 전화번호, 자세한 건강 정보는 공개하지 않아요.</div>
+          </div>
+
+          <div class="panel view-panel" id="view-group">
+            <div class="panel-heading">
+              <p class="eyebrow">단체 대화방</p>
+              <h2>모임 전체에는 아이디만 보이는 대화방</h2>
+            </div>
+            <div class="group-chat" aria-labelledby="group-chat-title">
+              <div class="panel-heading chat-heading">
+                <div>
+                  <p class="eyebrow">4명 모임</p>
+                  <h3 id="group-chat-title">우리 모임 단체방</h3>
+                </div>
+                <span class="id-badge">ID만 표시</span>
+              </div>
+              <div class="chat-window" id="group-chat-window" role="log" aria-live="polite"></div>
+              <div class="ai-reply-panel" aria-labelledby="group-reply-title">
+                <div class="ai-reply-header">
+                  <h4 id="group-reply-title">답변 도움</h4>
+                </div>
+                <div class="ai-reply-list" id="group-reply-list" aria-label="단체방 답변 후보"></div>
+              </div>
+              <div class="chat-quick-actions" id="group-quick-actions" aria-label="단체 대화 빠른 말"></div>
+              <label class="chat-input-label" for="group-chat-input">단체방에 짧게 말하기</label>
+              <div class="group-compose">
+                <input id="group-chat-input" type="text" maxlength="40" placeholder="예: 모두 좋은 하루 보내세요" />
+                <button class="voice-button" id="group-voice-button" type="button" aria-pressed="false">음성 입력</button>
+                <button class="chat-send" id="group-chat-send" type="button">보내기</button>
+              </div>
+              <p class="voice-status" id="group-voice-status" role="status">마이크를 누르면 말한 내용이 단체방 입력칸에 들어와요.</p>
+            </div>
+            <div class="safety-line">단체방에서도 실명과 자세한 신상은 공개하지 않아요.</div>
+          </div>
+
+          <div class="panel view-panel" id="view-help">
+            <div class="panel-heading">
+              <p class="eyebrow">도움 요청 / 불편 신고</p>
+              <h2>불편하면 바로 멈출 수 있어요</h2>
+            </div>
+            <div class="choice-list" id="help-list"></div>
+            <div class="result-box" id="help-result">필요한 항목을 하나 골라주세요.</div>
+          </div>
+        </section>
+
+        <section class="activity-band" aria-labelledby="activity-title">
+          <div class="panel-heading">
+            <p class="eyebrow">오늘의 연결</p>
+            <h2 id="activity-title">최근 대화</h2>
+          </div>
+          <ul class="activity-list" id="activity-list"></ul>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
   </body>
 </html>
