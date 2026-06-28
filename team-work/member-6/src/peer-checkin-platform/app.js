@@ -93,19 +93,20 @@ const contacts = [
 
 const helpChoices = [
   {
+    label: "대화가 불편해요",
+    result: "불편 신고가 준비됐어요. 신고에는 상대 아이디만 전달되고 자세한 신상은 공개되지 않습니다.",
+  },
+  {
+    label: "연결된 상대를 바꾸고 싶어요",
+    result: "연결 변경 요청이 준비됐어요. 새 대화 상대를 다시 추천합니다.",
+  },
+  {
     label: "앱 사용이 어려워요",
-    title: "앱 사용 문의",
-    actions: ["문의하기"],
+    result: "앱 사용 도움 요청이 준비됐어요. 다음 버전에서는 가족/도우미에게 도움 링크를 보낼 수 있습니다.",
   },
   {
     label: "긴급 상황 안내",
-    title: "긴급 상황 선택",
-    actions: ["팀원이 위험해요", "도움이 필요해요"],
-  },
-  {
-    label: "기타 문의",
-    title: "기타 문의",
-    actions: ["문의하기"],
+    result: "지금 위험하거나 아프면 앱 안에서 기다리지 말고 112 또는 119에 바로 연락하세요.",
   },
 ];
 
@@ -144,11 +145,7 @@ const groupChatInput = document.querySelector("#group-chat-input");
 const groupChatSend = document.querySelector("#group-chat-send");
 const groupVoiceButton = document.querySelector("#group-voice-button");
 const groupVoiceStatus = document.querySelector("#group-voice-status");
-const helpListScreen = document.querySelector("#help-list-screen");
-const helpDetailScreen = document.querySelector("#help-detail-screen");
-const helpDetailBack = document.querySelector("#help-detail-back");
-const helpDetailTitle = document.querySelector("#help-detail-title");
-const helpActionList = document.querySelector("#help-action-list");
+const helpResult = document.querySelector("#help-result");
 const voiceButton = document.querySelector("#voice-button");
 const voiceStatus = document.querySelector("#voice-status");
 const micCheck = document.querySelector("#mic-check");
@@ -161,7 +158,6 @@ let speechRecognition = null;
 let isListening = false;
 let activeVoiceTarget = "private";
 let selectedMicId = "";
-let activeHelpChoiceLabel = helpChoices[0].label;
 
 function getActiveContact() {
   return contacts.find((contact) => contact.id === activeContactId) ?? contacts[0];
@@ -217,12 +213,9 @@ function setView(nextView) {
 
   if (nextView === "direct") {
     showPrivateList();
-  } else if (nextView === "help") {
-    showHelpList();
-    activityBand.hidden = true;
   } else {
     isPrivateChatOpen = false;
-    activityBand.hidden = nextView === "network";
+    activityBand.hidden = nextView === "help";
   }
 }
 
@@ -256,28 +249,6 @@ function showPrivateList() {
   isPrivateChatOpen = false;
   renderContactList();
   updatePrivateFlow();
-}
-
-function getActiveHelpChoice() {
-  return helpChoices.find((choice) => choice.label === activeHelpChoiceLabel) ?? helpChoices[0];
-}
-
-function updateHelpFlow(isDetailOpen) {
-  helpListScreen.classList.toggle("is-hidden", isDetailOpen);
-  helpDetailScreen.classList.toggle("is-hidden", !isDetailOpen);
-}
-
-function showHelpList() {
-  updateHelpFlow(false);
-}
-
-function openHelpDetail(choice) {
-  activeHelpChoiceLabel = choice.label;
-  helpDetailTitle.textContent = choice.title;
-  renderChoices("#help-action-list", choice.actions, (actionLabel) => {
-    addActivity("도움 요청을 선택했어요", actionLabel);
-  });
-  updateHelpFlow(true);
 }
 
 function openPrivateChat(contactId) {
@@ -685,10 +656,6 @@ voiceButton.addEventListener("click", () => startVoiceInput("private"));
 
 groupVoiceButton.addEventListener("click", () => startVoiceInput("group"));
 
-helpDetailBack.addEventListener("click", () => {
-  showHelpList();
-});
-
 micCheck.addEventListener("click", () => {
   checkMicrophoneConnection();
 });
@@ -708,7 +675,8 @@ if (navigator.mediaDevices?.addEventListener) {
 }
 
 renderChoices("#help-list", helpChoices, (choice) => {
-  openHelpDetail(choice);
+  helpResult.textContent = choice.result;
+  addActivity("도움 요청을 선택했어요", choice.label);
 });
 
 renderContactList();
@@ -720,4 +688,3 @@ renderGroupChat();
 setupVoiceInput();
 renderActivities();
 showPrivateList();
-showHelpList();

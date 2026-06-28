@@ -266,6 +266,17 @@ h2 {
   background: #f0faf5;
 }
 
+.result-box {
+  margin-top: 16px;
+  min-height: 64px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8faf9;
+  color: var(--muted);
+  font-weight: 700;
+}
+
 .section-label {
   margin-bottom: 8px;
   color: var(--muted);
@@ -281,16 +292,8 @@ h2 {
 }
 
 .direct-list-screen.is-hidden,
-.direct-chat-screen.is-hidden,
-.help-list-screen.is-hidden,
-.help-detail-screen.is-hidden {
+.direct-chat-screen.is-hidden {
   display: none;
-}
-
-.help-flow,
-.help-action-list {
-  display: grid;
-  gap: 14px;
 }
 
 .back-button {
